@@ -1,0 +1,129 @@
+.seatingsale {
+    max-width: 100%;
+    margin: 1em 0;
+}
+.seatingsale-legend {
+    margin-bottom: 1em;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1em;
+}
+.seatingsale-legend-item {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.9em;
+}
+.seatingsale-swatch {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    margin-right: 0.4em;
+    vertical-align: middle;
+}
+.seatingsale-mapwrap {
+    width: 100%;
+    overflow: auto;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: #fafafa;
+}
+#seatingsale-svg {
+    width: 100%;
+    height: auto;
+    min-height: 320px;
+    display: block;
+}
+.seatingsale-seatg .seatingsale-seat {
+    stroke: #fff;
+    stroke-width: 1.5;
+    transition: stroke 0.1s;
+}
+.seatingsale-seatg:hover .seatingsale-seat {
+    stroke: #333;
+    stroke-width: 2;
+}
+.seatingsale-seat.unavailable {
+    opacity: 0.45;
+}
+.seatingsale-seat.selected {
+    stroke: #000;
+    stroke-width: 3.5;
+}
+.seatingsale-seatnum {
+    font-size: 8px;
+    fill: #fff;
+    text-anchor: middle;
+    pointer-events: none;
+    font-family: sans-serif;
+}
+.seatingsale-rowlabel {
+    font-size: 11px;
+    fill: #666;
+    text-anchor: end;
+    font-family: sans-serif;
+    font-weight: bold;
+}
+.seatingsale-hint {
+    font-size: 0.85em;
+    color: #666;
+    margin: 0.6em 0 0.2em;
+}
+.seatingsale-empty {
+    color: #888;
+    font-style: italic;
+    margin: 0.5em 0;
+}
+.seatingsale-panel {
+    margin-top: 0.5em;
+    padding: 1em;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: #fff;
+}
+.seatingsale-panel-head {
+    margin-bottom: 0.6em;
+}
+.seatingsale-list {
+    margin-bottom: 1em;
+}
+.seatingsale-listrow {
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+    padding: 0.4em 0;
+    border-bottom: 1px solid #eee;
+}
+.seatingsale-listseat {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+}
+.seatingsale-dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 0.5em;
+}
+.seatingsale-varselect {
+    max-width: 12em;
+}
+.seatingsale-listprice {
+    min-width: 5em;
+    text-align: right;
+}
+.seatingsale-remove {
+    border: none;
+    background: #eee;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    line-height: 1;
+    cursor: pointer;
+    font-size: 1.1em;
+    color: #a00;
+}
+.seatingsale-remove:hover {
+    background: #f5c6c6;
+}

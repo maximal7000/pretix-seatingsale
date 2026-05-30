@@ -1,0 +1,39 @@
+{% load i18n %}
+{% load static %}
+
+<link rel="stylesheet" href="{% static "pretix_seatingsale/seatingsale.css" %}">
+
+{% if not has_seats %}
+    <p>{% trans "No seats are available for this event yet." %}</p>
+{% else %}
+<div class="seatingsale">
+    <div class="seatingsale-legend" id="seatingsale-legend"></div>
+
+    <div class="seatingsale-mapwrap">
+        <svg id="seatingsale-svg" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+
+    <p class="seatingsale-hint">
+        {% trans "Click seats to select them. Click again to deselect." %}
+    </p>
+
+    <p id="seatingsale-empty" class="seatingsale-empty">
+        {% trans "No seats selected yet." %}
+    </p>
+
+    <div id="seatingsale-panel" class="seatingsale-panel" hidden>
+        <div class="seatingsale-panel-head">
+            <strong>{% trans "Selected seats" %}</strong>
+            (<span id="seatingsale-count">0</span>)
+        </div>
+        <div id="seatingsale-list" class="seatingsale-list"></div>
+        <button type="submit" id="seatingsale-submit" class="btn btn-primary btn-block">
+            {% trans "Add to cart" %}
+        </button>
+    </div>
+
+    <script type="application/json" id="seatingsale-data">{{ seats_json|safe }}</script>
+    <script type="application/json" id="seatingsale-cats">{{ categories_json|safe }}</script>
+    <script src="{% static "pretix_seatingsale/seatingsale.js" %}" defer></script>
+</div>
+{% endif %}

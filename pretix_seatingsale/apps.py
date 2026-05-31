@@ -16,7 +16,9 @@ class PluginApp(PluginConfig):
     class PretixPluginMeta:
         name = gettext_lazy("Seating Sale")
         author = "Max Herklotz"
-        description = gettext_lazy("Interactive seat selection in the shop.")
+        description = gettext_lazy(
+            "Interactive seat selection in the shop, plus a seating plan importer."
+        )
         visible = True
         version = __version__
         category = "FEATURE"

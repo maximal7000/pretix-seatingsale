@@ -1,2 +1,3 @@
 recursive-include pretix_seatingsale/static *
 recursive-include pretix_seatingsale/templates *
+recursive-include pretix_seatingsale/locale *

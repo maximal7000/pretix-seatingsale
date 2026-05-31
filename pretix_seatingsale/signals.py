@@ -2,9 +2,21 @@ import json
 
 from django.dispatch import receiver
 from django.template.loader import get_template
+from django.urls import resolve, reverse
+from django.utils.translation import gettext_lazy as _
 
 from pretix.base.models import SeatCategoryMapping
+from pretix.control.signals import nav_organizer
 from pretix.presale.signals import render_seating_plan
+
+SEAT_ICON = (
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" '
+    'class="svg-icon"><path d="M64 64a32 32 0 0 0-32 32v160a32 32 0 0 0 '
+    '32 32h16v-96a64 64 0 0 1 64-64h160V96a32 32 0 0 0-32-32H64zm304 '
+    '160H160a32 32 0 0 0-32 32v160a32 32 0 0 0 32 32h16v-32a16 16 0 0 1 '
+    '32 0v32h128v-32a16 16 0 0 1 32 0v32h16a32 32 0 0 0 32-32V256a32 32 '
+    '0 0 0-32-32z"/></svg>'
+)
 
 
 def _guid_to_category(plan):
@@ -39,7 +51,7 @@ def render_seating_plan_receiver(sender, request, **kwargs):
     except AttributeError:
         channel = "web"
 
-    # category -> color
+    # category -> color, in plan order
     colors = {}
     for c in plan.layout_data.get("categories", []):
         colors[c["name"]] = c.get("color", "#2980b9")
@@ -68,11 +80,13 @@ def render_seating_plan_receiver(sender, request, **kwargs):
 
     # seat objects, sorted by rank for stable rendering
     seats = []
+    used_categories = set()
     qs = event.seats.filter(subevent=subevent).select_related("product").order_by(
         "sorting_rank", "seat_guid"
     )
     for s in qs:
         cat = guid_cat.get(s.seat_guid, "")
+        used_categories.add(cat)
         prod = cat_product.get(cat)
         available = bool(prod) and not s.blocked and s.is_available(sales_channel=channel)
         seats.append({
@@ -88,12 +102,39 @@ def render_seating_plan_receiver(sender, request, **kwargs):
             "product": prod,
         })
 
+    # Only categories that actually have seats, in plan order.
+    categories = [
+        {"name": n, "color": colors[n]}
+        for n in colors
+        if n in used_categories
+    ]
+
     ctx = {
         "seats_json": json.dumps(seats),
-        "categories_json": json.dumps([
-            {"name": n, "color": colors[n]} for n in colors
-        ]),
+        "categories_json": json.dumps(categories),
         "has_seats": len(seats) > 0,
+        # Hide the category legend/filter when there is only one category.
+        "show_categories": len(categories) > 1,
     }
     template = get_template("pretixpresale/event/seatingsale_map.html")
     return template.render(ctx, request=request)
+
+
+@receiver(nav_organizer, dispatch_uid="seatingsale_orga_nav")
+def control_nav_orga(sender, request=None, **kwargs):
+    if not request.user.has_organizer_permission(
+        request.organizer, "can_change_organizer_settings", request=request
+    ):
+        return []
+    url = resolve(request.path_info)
+    return [
+        {
+            "label": _("Seating plans"),
+            "url": reverse(
+                "plugins:pretix_seatingsale:list",
+                kwargs={"organizer": request.organizer.slug},
+            ),
+            "active": url.namespace == "plugins:pretix_seatingsale",
+            "icon": "th",
+        }
+    ]

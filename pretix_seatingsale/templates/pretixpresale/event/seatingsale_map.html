@@ -6,30 +6,40 @@
 {% if not has_seats %}
     <p>{% trans "No seats are available for this event yet." %}</p>
 {% else %}
-<div class="seatingsale">
-    <div class="seatingsale-legend" id="seatingsale-legend"></div>
+<div class="seatingsale"
+     data-show-categories="{% if show_categories %}1{% else %}0{% endif %}"
+     data-label-remove="{% trans "Remove seat" %}">
+    {% if show_categories %}
+        <div class="seatingsale-legend" id="seatingsale-legend"></div>
+    {% endif %}
 
-    <div class="seatingsale-mapwrap">
-        <svg id="seatingsale-svg" preserveAspectRatio="xMidYMid meet"></svg>
-    </div>
-
-    <p class="seatingsale-hint">
-        {% trans "Click seats to select them. Click again to deselect." %}
-    </p>
-
-    <p id="seatingsale-empty" class="seatingsale-empty">
-        {% trans "No seats selected yet." %}
-    </p>
-
-    <div id="seatingsale-panel" class="seatingsale-panel" hidden>
-        <div class="seatingsale-panel-head">
-            <strong>{% trans "Selected seats" %}</strong>
-            (<span id="seatingsale-count">0</span>)
+    <div class="seatingsale-layout">
+        <div class="seatingsale-mapwrap">
+            <svg id="seatingsale-svg" preserveAspectRatio="xMidYMid meet"></svg>
         </div>
-        <div id="seatingsale-list" class="seatingsale-list"></div>
-        <button type="submit" id="seatingsale-submit" class="btn btn-primary btn-block">
-            {% trans "Add to cart" %}
-        </button>
+
+        <div class="seatingsale-side">
+            <div class="seatingsale-side-head">
+                {% trans "Your selection" %}
+                <span class="seatingsale-badge" id="seatingsale-count">0</span>
+            </div>
+
+            <p id="seatingsale-empty" class="seatingsale-empty">
+                {% trans "Click a free seat on the map to select it." %}
+            </p>
+
+            <div id="seatingsale-list" class="seatingsale-list"></div>
+
+            <div class="seatingsale-total" id="seatingsale-total" hidden>
+                <span>{% trans "Total" %}</span>
+                <strong id="seatingsale-total-value"></strong>
+            </div>
+
+            <button type="submit" id="seatingsale-submit"
+                    class="btn btn-primary btn-block" disabled>
+                {% trans "Add to cart" %}
+            </button>
+        </div>
     </div>
 
     <script type="application/json" id="seatingsale-data">{{ seats_json|safe }}</script>

@@ -1,0 +1,121 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: pretix-seatingsale\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-05-31 00:00+0000\n"
+"PO-Revision-Date: 2026-05-31 00:00+0000\n"
+"Last-Translator: Max Herklotz\n"
+"Language-Team: German\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: pretix_seatingsale/apps.py
+msgid "Seating Sale"
+msgstr "Sitzplatzverkauf"
+
+#: pretix_seatingsale/apps.py
+msgid "Interactive seat selection in the shop, plus a seating plan importer."
+msgstr ""
+"Interaktive Sitzplatzauswahl im Shop, inklusive Import von Sitzplänen."
+
+#: pretix_seatingsale/forms.py
+msgid "Name"
+msgstr "Name"
+
+#: pretix_seatingsale/forms.py
+msgid "Leave empty to use the name from the uploaded file."
+msgstr "Leer lassen, um den Namen aus der hochgeladenen Datei zu verwenden."
+
+#: pretix_seatingsale/forms.py
+msgid "Seating plan file (JSON)"
+msgstr "Sitzplan-Datei (JSON)"
+
+#: pretix_seatingsale/forms.py
+msgid "Upload a seating plan exported from the editor at seats.pretix.eu."
+msgstr ""
+"Laden Sie einen im Editor unter seats.pretix.eu exportierten Sitzplan hoch."
+
+#: pretix_seatingsale/forms.py
+msgid "The file is not valid UTF-8 text."
+msgstr "Die Datei ist kein gültiger UTF-8-Text."
+
+#: pretix_seatingsale/forms.py
+msgid "The file does not contain valid JSON."
+msgstr "Die Datei enthält kein gültiges JSON."
+
+#: pretix_seatingsale/forms.py
+msgid "Imported plan"
+msgstr "Importierter Plan"
+
+#: pretix_seatingsale/views.py
+msgid "Seating plan \"{name}\" has been imported."
+msgstr "Sitzplan „{name}“ wurde importiert."
+
+#: pretix_seatingsale/signals.py
+#: pretix_seatingsale/templates/pretix_seatingsale/control/list.html
+msgid "Seating plans"
+msgstr "Sitzpläne"
+
+#: pretix_seatingsale/templates/pretixpresale/event/seatingsale_map.html
+msgid "No seats are available for this event yet."
+msgstr "Für diese Veranstaltung sind noch keine Plätze verfügbar."
+
+#: pretix_seatingsale/templates/pretixpresale/event/seatingsale_map.html
+msgid "Your selection"
+msgstr "Ihre Auswahl"
+
+#: pretix_seatingsale/templates/pretixpresale/event/seatingsale_map.html
+msgid "Click a free seat on the map to select it."
+msgstr "Klicken Sie einen freien Platz im Plan an, um ihn auszuwählen."
+
+#: pretix_seatingsale/templates/pretixpresale/event/seatingsale_map.html
+msgid "Total"
+msgstr "Gesamt"
+
+#: pretix_seatingsale/templates/pretixpresale/event/seatingsale_map.html
+msgid "Add to cart"
+msgstr "In den Warenkorb"
+
+#: pretix_seatingsale/templates/pretixpresale/event/seatingsale_map.html
+msgid "Remove seat"
+msgstr "Platz entfernen"
+
+#: pretix_seatingsale/templates/pretix_seatingsale/control/list.html
+msgid "Import seating plan"
+msgstr "Sitzplan importieren"
+
+#: pretix_seatingsale/templates/pretix_seatingsale/control/list.html
+msgid "Categories"
+msgstr "Kategorien"
+
+#: pretix_seatingsale/templates/pretix_seatingsale/control/list.html
+msgid "Seats"
+msgstr "Plätze"
+
+#: pretix_seatingsale/templates/pretix_seatingsale/control/list.html
+msgid "You have not imported any seating plans yet."
+msgstr "Sie haben noch keine Sitzpläne importiert."
+
+#: pretix_seatingsale/templates/pretix_seatingsale/control/import.html
+msgid ""
+"Upload a seating plan that you created and exported as a JSON file in the "
+"seating plan editor at <a href=\"https://seats.pretix.eu/\" target=\"_blank\" "
+"rel=\"noopener\">seats.pretix.eu</a>. The plan is added to this organizer and "
+"can then be assigned to an event or date."
+msgstr ""
+"Laden Sie einen Sitzplan hoch, den Sie im Sitzplan-Editor unter <a "
+"href=\"https://seats.pretix.eu/\" target=\"_blank\" rel=\"noopener\">seats."
+"pretix.eu</a> erstellt und als JSON-Datei exportiert haben. Der Plan wird "
+"diesem Veranstalter hinzugefügt und kann anschließend einer Veranstaltung "
+"oder einem Termin zugewiesen werden."
+
+#: pretix_seatingsale/templates/pretix_seatingsale/control/import.html
+msgid "Cancel"
+msgstr "Abbrechen"
+
+#: pretix_seatingsale/templates/pretix_seatingsale/control/import.html
+msgid "Import"
+msgstr "Importieren"

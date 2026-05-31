@@ -13,4 +13,19 @@ urlpatterns = [
         views.SeatingPlanImport.as_view(),
         name="import",
     ),
+    path(
+        "control/organizer/<str:organizer>/seatingsale/<int:plan>/edit/",
+        views.SeatingPlanEdit.as_view(),
+        name="edit",
+    ),
+    path(
+        "control/organizer/<str:organizer>/seatingsale/<int:plan>/delete/",
+        views.SeatingPlanDelete.as_view(),
+        name="delete",
+    ),
+    path(
+        "control/event/<str:organizer>/<str:event>/seatingsale/",
+        views.SeatingAssign.as_view(),
+        name="assign",
+    ),
 ]

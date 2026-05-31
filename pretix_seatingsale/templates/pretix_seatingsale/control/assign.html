@@ -1,0 +1,86 @@
+{% extends "pretixcontrol/event/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Seating" %}{% endblock %}
+{% block content %}
+    <h1>{% trans "Seating" %}</h1>
+    <p>
+        {% blocktrans trimmed %}
+            Assign a seating plan and map each seat category to one of your
+            products. Saving (re)generates the seats for the selected plan.
+        {% endblocktrans %}
+    </p>
+
+    {% if not plans %}
+        <div class="alert alert-warning">
+            {% url "plugins:pretix_seatingsale:list" organizer=request.organizer.slug as listurl %}
+            {% blocktrans trimmed %}
+                You have not imported any seating plans yet. Import one under
+                <a href="{{ listurl }}">Seating plans</a> first.
+            {% endblocktrans %}
+        </div>
+    {% endif %}
+
+    {% for row in rows %}
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    {% if row.is_subevent %}{{ row.label }}{% else %}{% trans "Event" %}{% endif %}
+                </h3>
+            </div>
+            <div class="panel-body">
+                <form action="" method="post" class="form-horizontal">
+                    {% csrf_token %}
+                    <input type="hidden" name="target" value="{{ row.key }}">
+
+                    <div class="form-group">
+                        <label class="col-md-3 control-label">{% trans "Seating plan" %}</label>
+                        <div class="col-md-9">
+                            <select name="plan" class="form-control">
+                                <option value="">{% trans "— none —" %}</option>
+                                {% for p in plans %}
+                                    <option value="{{ p.pk }}"
+                                        {% if row.plan and row.plan.pk == p.pk %}selected{% endif %}>
+                                        {{ p.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    {% if row.categories %}
+                        <hr>
+                        <p class="col-md-9 col-md-offset-3">
+                            <strong>{% trans "Category mapping" %}</strong>
+                        </p>
+                        {% for cat in row.categories %}
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">{{ cat.name }}</label>
+                                <div class="col-md-9">
+                                    <select name="map_{{ cat.name }}" class="form-control">
+                                        <option value="">{% trans "— not for sale —" %}</option>
+                                        {% for it in items %}
+                                            <option value="{{ it.pk }}"
+                                                {% if cat.selected_pid == it.pk %}selected{% endif %}>
+                                                {{ it.name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% elif row.plan %}
+                        <p class="col-md-9 col-md-offset-3 text-muted">
+                            {% trans "This plan has no categories." %}
+                        </p>
+                    {% endif %}
+
+                    <div class="form-group submit-group">
+                        <button type="submit" class="btn btn-primary btn-save">
+                            <span class="fa fa-save"></span> {% trans "Save" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    {% endfor %}
+{% endblock %}

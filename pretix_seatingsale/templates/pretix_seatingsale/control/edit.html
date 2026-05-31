@@ -1,0 +1,26 @@
+{% extends "pretixcontrol/organizers/base.html" %}
+{% load i18n %}
+{% load bootstrap3 %}
+{% block title %}{% trans "Edit seating plan" %}{% endblock %}
+{% block content %}
+    <h1>{% trans "Edit seating plan" %}: {{ plan.name }}</h1>
+    <p>
+        {% blocktrans trimmed %}
+            Change the name below. To change the layout, upload a new JSON file
+            exported from <a href="https://seats.pretix.eu/" target="_blank"
+            rel="noopener">seats.pretix.eu</a>; leave the file empty to keep the
+            current layout.
+        {% endblocktrans %}
+    </p>
+    <form action="" method="post" enctype="multipart/form-data" class="form-horizontal">
+        {% csrf_token %}
+        {% bootstrap_form form layout="horizontal" %}
+        <div class="form-group submit-group">
+            <a href="{% url "plugins:pretix_seatingsale:list" organizer=request.organizer.slug %}"
+               class="btn btn-default btn-cancel">{% trans "Cancel" %}</a>
+            <button type="submit" class="btn btn-primary btn-save">
+                <span class="fa fa-save"></span> {% trans "Save" %}
+            </button>
+        </div>
+    </form>
+{% endblock %}

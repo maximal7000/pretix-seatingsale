@@ -1,0 +1,33 @@
+{% extends "pretixcontrol/organizers/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Delete seating plan" %}{% endblock %}
+{% block content %}
+    <h1>{% trans "Delete seating plan" %}</h1>
+    {% if in_use %}
+        <div class="alert alert-warning">
+            {% blocktrans trimmed with name=plan.name %}
+                The seating plan "{{ name }}" is still assigned to an event or
+                date and cannot be deleted. Remove the assignment first.
+            {% endblocktrans %}
+        </div>
+        <a href="{% url "plugins:pretix_seatingsale:list" organizer=request.organizer.slug %}"
+           class="btn btn-default">{% trans "Back" %}</a>
+    {% else %}
+        <form action="" method="post">
+            {% csrf_token %}
+            <div class="alert alert-danger">
+                {% blocktrans trimmed with name=plan.name %}
+                    Do you really want to delete the seating plan "{{ name }}"?
+                    This action cannot be undone.
+                {% endblocktrans %}
+            </div>
+            <div class="form-group submit-group">
+                <a href="{% url "plugins:pretix_seatingsale:list" organizer=request.organizer.slug %}"
+                   class="btn btn-default btn-cancel">{% trans "Cancel" %}</a>
+                <button type="submit" class="btn btn-danger btn-save">
+                    <span class="fa fa-trash"></span> {% trans "Delete" %}
+                </button>
+            </div>
+        </form>
+    {% endif %}
+{% endblock %}

@@ -6,7 +6,7 @@ from django.urls import resolve, reverse
 from django.utils.translation import gettext_lazy as _
 
 from pretix.base.models import SeatCategoryMapping
-from pretix.control.signals import nav_organizer
+from pretix.control.signals import nav_event, nav_organizer
 from pretix.presale.signals import render_seating_plan
 
 SEAT_ICON = (
@@ -142,6 +142,31 @@ def control_nav_orga(sender, request=None, **kwargs):
                 kwargs={"organizer": request.organizer.slug},
             ),
             "active": url.namespace == "plugins:pretix_seatingsale",
+            "icon": "th",
+        }
+    ]
+
+
+@receiver(nav_event, dispatch_uid="seatingsale_event_nav")
+def control_nav_event(sender, request=None, **kwargs):
+    if not request.user.has_event_permission(
+        request.organizer, request.event, "can_change_event_settings",
+        request=request,
+    ):
+        return []
+    url = resolve(request.path_info)
+    return [
+        {
+            "label": _("Seating"),
+            "url": reverse(
+                "plugins:pretix_seatingsale:assign",
+                kwargs={
+                    "organizer": request.organizer.slug,
+                    "event": request.event.slug,
+                },
+            ),
+            "active": url.namespace == "plugins:pretix_seatingsale"
+            and url.url_name == "assign",
             "icon": "th",
         }
     ]

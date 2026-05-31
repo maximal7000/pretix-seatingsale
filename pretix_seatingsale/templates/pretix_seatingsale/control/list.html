@@ -17,6 +17,8 @@
                         <th>{% trans "Name" %}</th>
                         <th class="text-right">{% trans "Categories" %}</th>
                         <th class="text-right">{% trans "Seats" %}</th>
+                        <th></th>
+                        <th class="text-right">{% trans "Actions" %}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -25,6 +27,22 @@
                             <td><strong>{{ p.obj.name }}</strong></td>
                             <td class="text-right">{{ p.categories }}</td>
                             <td class="text-right">{{ p.seats }}</td>
+                            <td>
+                                {% if p.in_use %}
+                                    <span class="label label-info">{% trans "In use" %}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-right">
+                                <a href="{% url "plugins:pretix_seatingsale:edit" organizer=request.organizer.slug plan=p.obj.pk %}"
+                                   class="btn btn-default btn-sm" title="{% trans "Edit" %}">
+                                    <span class="fa fa-edit"></span>
+                                </a>
+                                <a href="{% url "plugins:pretix_seatingsale:delete" organizer=request.organizer.slug plan=p.obj.pk %}"
+                                   class="btn btn-danger btn-sm {% if p.in_use %}disabled{% endif %}"
+                                   title="{% trans "Delete" %}">
+                                    <span class="fa fa-trash"></span>
+                                </a>
+                            </td>
                         </tr>
                     {% endfor %}
                 </tbody>

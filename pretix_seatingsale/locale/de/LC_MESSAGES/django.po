@@ -126,3 +126,139 @@ msgid ""
 msgstr ""
 "Sie können nicht mehr Plätze auswählen als die maximale Anzahl an Tickets "
 "pro Bestellung."
+
+#: pretix_seatingsale/templates/pretix_seatingsale/control/list.html
+msgid "Actions"
+msgstr "Aktionen"
+
+#: pretix_seatingsale/templates/pretix_seatingsale/control/list.html
+msgid "In use"
+msgstr "In Benutzung"
+
+#: pretix_seatingsale/templates/pretix_seatingsale/control/list.html
+msgid "Edit"
+msgstr "Bearbeiten"
+
+#: pretix_seatingsale/templates/pretix_seatingsale/control/list.html
+msgid "Delete"
+msgstr "Löschen"
+
+#: pretix_seatingsale/templates/pretix_seatingsale/control/delete.html
+msgid "Back"
+msgstr "Zurück"
+
+#: pretix_seatingsale/views.py
+msgid "Seating plan \"{name}\" has been updated."
+msgstr "Sitzplan „{name}“ wurde aktualisiert."
+
+#: pretix_seatingsale/views.py
+msgid "Seating plan \"{name}\" has been deleted."
+msgstr "Sitzplan „{name}“ wurde gelöscht."
+
+#: pretix_seatingsale/views.py
+msgid ""
+"This seating plan is still assigned to an event or date and cannot be deleted."
+msgstr ""
+"Dieser Sitzplan ist noch einer Veranstaltung oder einem Termin zugewiesen "
+"und kann nicht gelöscht werden."
+
+#: pretix_seatingsale/views.py
+msgid "Unknown target."
+msgstr "Unbekanntes Ziel."
+
+#: pretix_seatingsale/views.py
+msgid "Seating configuration has been saved."
+msgstr "Die Sitzplatz-Konfiguration wurde gespeichert."
+
+#: pretix_seatingsale/forms.py
+msgid ""
+"Upload a new JSON file to replace the layout, or leave empty to only change "
+"the name."
+msgstr ""
+"Laden Sie eine neue JSON-Datei hoch, um das Layout zu ersetzen, oder lassen "
+"Sie das Feld leer, um nur den Namen zu ändern."
+
+#: pretix_seatingsale/templates/pretix_seatingsale/control/edit.html
+msgid "Edit seating plan"
+msgstr "Sitzplan bearbeiten"
+
+#: pretix_seatingsale/templates/pretix_seatingsale/control/edit.html
+msgid ""
+"Change the name below. To change the layout, upload a new JSON file exported "
+"from <a href=\"https://seats.pretix.eu/\" target=\"_blank\" rel=\"noopener\">"
+"seats.pretix.eu</a>; leave the file empty to keep the current layout."
+msgstr ""
+"Ändern Sie unten den Namen. Um das Layout zu ändern, laden Sie eine neue, in "
+"<a href=\"https://seats.pretix.eu/\" target=\"_blank\" rel=\"noopener\">seats."
+"pretix.eu</a> exportierte JSON-Datei hoch; lassen Sie das Feld leer, um das "
+"aktuelle Layout zu behalten."
+
+#: pretix_seatingsale/templates/pretix_seatingsale/control/edit.html
+#: pretix_seatingsale/templates/pretix_seatingsale/control/assign.html
+msgid "Save"
+msgstr "Speichern"
+
+#: pretix_seatingsale/templates/pretix_seatingsale/control/delete.html
+msgid "Delete seating plan"
+msgstr "Sitzplan löschen"
+
+#: pretix_seatingsale/templates/pretix_seatingsale/control/delete.html
+msgid ""
+"The seating plan \"%(name)s\" is still assigned to an event or date and "
+"cannot be deleted. Remove the assignment first."
+msgstr ""
+"Der Sitzplan „%(name)s“ ist noch einer Veranstaltung oder einem Termin "
+"zugewiesen und kann nicht gelöscht werden. Heben Sie die Zuweisung zuerst auf."
+
+#: pretix_seatingsale/templates/pretix_seatingsale/control/delete.html
+msgid ""
+"Do you really want to delete the seating plan \"%(name)s\"? This action "
+"cannot be undone."
+msgstr ""
+"Möchten Sie den Sitzplan „%(name)s“ wirklich löschen? Diese Aktion kann "
+"nicht rückgängig gemacht werden."
+
+#: pretix_seatingsale/templates/pretix_seatingsale/control/assign.html
+msgid "Seating"
+msgstr "Sitzplätze"
+
+#: pretix_seatingsale/templates/pretix_seatingsale/control/assign.html
+msgid ""
+"Assign a seating plan and map each seat category to one of your products. "
+"Saving (re)generates the seats for the selected plan."
+msgstr ""
+"Weisen Sie einen Sitzplan zu und ordnen Sie jede Sitzkategorie einem Ihrer "
+"Produkte zu. Beim Speichern werden die Sitze für den gewählten Plan (neu) "
+"erzeugt."
+
+#: pretix_seatingsale/templates/pretix_seatingsale/control/assign.html
+msgid ""
+"You have not imported any seating plans yet. Import one under <a "
+"href=\"%(listurl)s\">Seating plans</a> first."
+msgstr ""
+"Sie haben noch keine Sitzpläne importiert. Importieren Sie zuerst einen unter "
+"<a href=\"%(listurl)s\">Sitzpläne</a>."
+
+#: pretix_seatingsale/templates/pretix_seatingsale/control/assign.html
+msgid "Event"
+msgstr "Veranstaltung"
+
+#: pretix_seatingsale/templates/pretix_seatingsale/control/assign.html
+msgid "Seating plan"
+msgstr "Sitzplan"
+
+#: pretix_seatingsale/templates/pretix_seatingsale/control/assign.html
+msgid "— none —"
+msgstr "— keiner —"
+
+#: pretix_seatingsale/templates/pretix_seatingsale/control/assign.html
+msgid "Category mapping"
+msgstr "Kategorie-Zuordnung"
+
+#: pretix_seatingsale/templates/pretix_seatingsale/control/assign.html
+msgid "— not for sale —"
+msgstr "— nicht im Verkauf —"
+
+#: pretix_seatingsale/templates/pretix_seatingsale/control/assign.html
+msgid "This plan has no categories."
+msgstr "Dieser Plan hat keine Kategorien."

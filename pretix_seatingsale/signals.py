@@ -32,6 +32,63 @@ def _guid_to_category(plan):
     return out
 
 
+def _areas(plan):
+    """Collect non-seat decorations (stage, entrance, pillars, labels…).
+
+    Areas are stored per zone with coordinates relative to the zone, so we
+    add the zone offset to get absolute coordinates like the seats have.
+    """
+    out = []
+    if not plan:
+        return out
+    data = plan.layout_data
+    for zone in data.get("zones", []):
+        zx = zone.get("position", {}).get("x", 0)
+        zy = zone.get("position", {}).get("y", 0)
+        for a in zone.get("areas", []):
+            shape = a.get("shape")
+            if not shape:
+                continue
+            ax = a.get("position", {}).get("x", 0)
+            ay = a.get("position", {}).get("y", 0)
+            area = {
+                "shape": shape,
+                "x": zx + ax,
+                "y": zy + ay,
+                "color": a.get("color", "#dddddd"),
+                "border_color": a.get("border_color"),
+                "rotation": a.get("rotation", 0),
+            }
+            if shape == "rectangle":
+                rect = a.get("rectangle", {})
+                area["width"] = rect.get("width", 0)
+                area["height"] = rect.get("height", 0)
+            elif shape == "circle":
+                area["radius"] = a.get("circle", {}).get("radius", 0)
+            elif shape == "ellipse":
+                rad = a.get("ellipse", {}).get("radius", {})
+                area["rx"] = rad.get("x", 0)
+                area["ry"] = rad.get("y", 0)
+            elif shape == "polygon":
+                pts = a.get("polygon", {}).get("points", [])
+                area["points"] = [
+                    {"x": zx + p.get("x", 0), "y": zy + p.get("y", 0)}
+                    for p in pts
+                ]
+            # A standalone text shape, or a label attached to any shape.
+            txt = a.get("text")
+            if txt:
+                area["text"] = {
+                    "text": txt.get("text", ""),
+                    "color": txt.get("color", "#333333"),
+                    "size": txt.get("size", 16),
+                    "x": zx + ax + txt.get("position", {}).get("x", 0),
+                    "y": zy + ay + txt.get("position", {}).get("y", 0),
+                }
+            out.append(area)
+    return out
+
+
 def _plan_for(event, subevent):
     if subevent is not None:
         return subevent.seating_plan
@@ -118,6 +175,7 @@ def render_seating_plan_receiver(sender, request, **kwargs):
     ctx = {
         "seats_json": json.dumps(seats),
         "categories_json": json.dumps(categories),
+        "areas_json": json.dumps(_areas(plan)),
         "has_seats": len(seats) > 0,
         # Hide the category legend/filter when there is only one category.
         "show_categories": len(categories) > 1,

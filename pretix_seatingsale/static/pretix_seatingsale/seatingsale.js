@@ -22,6 +22,8 @@
         var catData = JSON.parse(
             document.getElementById("seatingsale-cats").textContent
         );
+        var areaEl = document.getElementById("seatingsale-areas");
+        var areaData = areaEl ? JSON.parse(areaEl.textContent) : [];
 
         var showCategories = root.getAttribute("data-show-categories") === "1";
         var labelRemove = root.getAttribute("data-label-remove") || "Remove";
@@ -75,12 +77,88 @@
         var maxX = Math.max.apply(null, xs);
         var minY = Math.min.apply(null, ys);
         var maxY = Math.max.apply(null, ys);
+        // Expand the bounds so decorations (stage, entrance, pillars…) fit.
+        areaData.forEach(function (a) {
+            var pts = [];
+            if (a.shape === "rectangle") {
+                pts.push([a.x, a.y], [a.x + (a.width || 0), a.y + (a.height || 0)]);
+            } else if (a.shape === "circle") {
+                pts.push([a.x - a.radius, a.y - a.radius],
+                         [a.x + a.radius, a.y + a.radius]);
+            } else if (a.shape === "ellipse") {
+                pts.push([a.x - a.rx, a.y - a.ry], [a.x + a.rx, a.y + a.ry]);
+            } else if (a.shape === "polygon" && a.points) {
+                a.points.forEach(function (p) { pts.push([p.x, p.y]); });
+            } else {
+                pts.push([a.x, a.y]);
+            }
+            pts.forEach(function (p) {
+                if (p[0] < minX) minX = p[0];
+                if (p[0] > maxX) maxX = p[0];
+                if (p[1] < minY) minY = p[1];
+                if (p[1] > maxY) maxY = p[1];
+            });
+        });
+
         var pad = 20;
         svg.setAttribute(
             "viewBox",
             (minX - pad) + " " + (minY - pad) + " " +
             (maxX - minX + 2 * pad) + " " + (maxY - minY + 2 * pad)
         );
+
+        // ---- decorations (stage, entrance, pillars, labels) --------------
+        // Drawn first so seats render on top of them.
+        areaData.forEach(function (a) {
+            var shape = null;
+            if (a.shape === "rectangle") {
+                shape = document.createElementNS(SVGNS, "rect");
+                shape.setAttribute("x", a.x);
+                shape.setAttribute("y", a.y);
+                shape.setAttribute("width", a.width || 0);
+                shape.setAttribute("height", a.height || 0);
+            } else if (a.shape === "circle") {
+                shape = document.createElementNS(SVGNS, "circle");
+                shape.setAttribute("cx", a.x);
+                shape.setAttribute("cy", a.y);
+                shape.setAttribute("r", a.radius || 0);
+            } else if (a.shape === "ellipse") {
+                shape = document.createElementNS(SVGNS, "ellipse");
+                shape.setAttribute("cx", a.x);
+                shape.setAttribute("cy", a.y);
+                shape.setAttribute("rx", a.rx || 0);
+                shape.setAttribute("ry", a.ry || 0);
+            } else if (a.shape === "polygon" && a.points) {
+                shape = document.createElementNS(SVGNS, "polygon");
+                shape.setAttribute("points", a.points.map(function (p) {
+                    return p.x + "," + p.y;
+                }).join(" "));
+            }
+            if (shape) {
+                shape.setAttribute("class", "seatingsale-area");
+                shape.setAttribute("fill", a.color || "#dddddd");
+                if (a.border_color) {
+                    shape.setAttribute("stroke", a.border_color);
+                }
+                if (a.rotation) {
+                    shape.setAttribute(
+                        "transform",
+                        "rotate(" + a.rotation + " " + a.x + " " + a.y + ")"
+                    );
+                }
+                svg.appendChild(shape);
+            }
+            if (a.text && a.text.text) {
+                var t = document.createElementNS(SVGNS, "text");
+                t.setAttribute("x", a.text.x);
+                t.setAttribute("y", a.text.y);
+                t.setAttribute("class", "seatingsale-arealabel");
+                t.setAttribute("fill", a.text.color || "#333333");
+                t.setAttribute("font-size", a.text.size || 16);
+                t.textContent = a.text.text;
+                svg.appendChild(t);
+            }
+        });
 
         // ---- row labels --------------------------------------------------
         var rowFirst = {};

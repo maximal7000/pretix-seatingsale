@@ -224,3 +224,15 @@
         position: static;
     }
 }
+
+/* ---- decorations (stage, entrance, pillars, labels) ---- */
+.seatingsale-area {
+    stroke-width: 1;
+    opacity: 0.9;
+}
+.seatingsale-arealabel {
+    text-anchor: middle;
+    dominant-baseline: central;
+    font-family: sans-serif;
+    pointer-events: none;
+}

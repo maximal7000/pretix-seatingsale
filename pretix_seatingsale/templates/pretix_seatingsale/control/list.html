@@ -1,0 +1,38 @@
+{% extends "pretixcontrol/organizers/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Seating plans" %}{% endblock %}
+{% block content %}
+    <h1>{% trans "Seating plans" %}</h1>
+    <p>
+        <a href="{% url "plugins:pretix_seatingsale:import" organizer=request.organizer.slug %}"
+           class="btn btn-default">
+            <span class="fa fa-upload"></span> {% trans "Import seating plan" %}
+        </a>
+    </p>
+    {% if plans_info %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>{% trans "Name" %}</th>
+                        <th class="text-right">{% trans "Categories" %}</th>
+                        <th class="text-right">{% trans "Seats" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in plans_info %}
+                        <tr>
+                            <td><strong>{{ p.obj.name }}</strong></td>
+                            <td class="text-right">{{ p.categories }}</td>
+                            <td class="text-right">{{ p.seats }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-collection">
+            <p>{% trans "You have not imported any seating plans yet." %}</p>
+        </div>
+    {% endif %}
+{% endblock %}

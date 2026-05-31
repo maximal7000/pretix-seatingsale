@@ -119,3 +119,10 @@ msgstr "Abbrechen"
 #: pretix_seatingsale/templates/pretix_seatingsale/control/import.html
 msgid "Import"
 msgstr "Importieren"
+
+#: pretix_seatingsale/templates/pretixpresale/event/seatingsale_map.html
+msgid ""
+"You cannot select more seats than the maximum number of tickets per order."
+msgstr ""
+"Sie können nicht mehr Plätze auswählen als die maximale Anzahl an Tickets "
+"pro Bestellung."

@@ -1,0 +1,26 @@
+{% extends "pretixcontrol/organizers/base.html" %}
+{% load i18n %}
+{% load bootstrap3 %}
+{% block title %}{% trans "Import seating plan" %}{% endblock %}
+{% block content %}
+    <h1>{% trans "Import seating plan" %}</h1>
+    <p>
+        {% blocktrans trimmed %}
+            Upload a seating plan that you created and exported as a JSON file in the
+            seating plan editor at <a href="https://seats.pretix.eu/" target="_blank"
+            rel="noopener">seats.pretix.eu</a>. The plan is added to this organizer and
+            can then be assigned to an event or date.
+        {% endblocktrans %}
+    </p>
+    <form action="" method="post" enctype="multipart/form-data" class="form-horizontal">
+        {% csrf_token %}
+        {% bootstrap_form form layout="horizontal" %}
+        <div class="form-group submit-group">
+            <a href="{% url "plugins:pretix_seatingsale:list" organizer=request.organizer.slug %}"
+               class="btn btn-default btn-cancel">{% trans "Cancel" %}</a>
+            <button type="submit" class="btn btn-primary btn-save">
+                <span class="fa fa-upload"></span> {% trans "Import" %}
+            </button>
+        </div>
+    </form>
+{% endblock %}

@@ -2,264 +2,366 @@
     "use strict";
 
     function ready(fn) {
-        if (document.readyState !== "loading") fn();
-        else document.addEventListener("DOMContentLoaded", fn);
+        if (document.readyState !== "loading") {
+            fn();
+        } else {
+            document.addEventListener("DOMContentLoaded", fn);
+        }
     }
 
     ready(function () {
         var root = document.querySelector(".seatingsale");
-        var dataEl = document.getElementById("seatingsale-data");
-        var catsEl = document.getElementById("seatingsale-cats");
-        var svg = document.getElementById("seatingsale-svg");
-        if (!root || !dataEl || !svg) return;
+        if (!root) {
+            return;
+        }
 
-        var seats = JSON.parse(dataEl.textContent);
-        var cats = JSON.parse(catsEl.textContent);
+        var svg = document.getElementById("seatingsale-svg");
+        var seatData = JSON.parse(
+            document.getElementById("seatingsale-data").textContent
+        );
+        var catData = JSON.parse(
+            document.getElementById("seatingsale-cats").textContent
+        );
+
         var showCategories = root.getAttribute("data-show-categories") === "1";
         var labelRemove = root.getAttribute("data-label-remove") || "Remove";
+        var labelMax = root.getAttribute("data-label-max") || "";
+        var maxPerOrder = parseInt(root.getAttribute("data-max-per-order"), 10);
+        if (isNaN(maxPerOrder) || maxPerOrder < 1) {
+            maxPerOrder = 0; // 0 = no limit
+        }
+
+        var listEl = document.getElementById("seatingsale-list");
+        var emptyEl = document.getElementById("seatingsale-empty");
+        var countEl = document.getElementById("seatingsale-count");
+        var totalEl = document.getElementById("seatingsale-total");
+        var totalValueEl = document.getElementById("seatingsale-total-value");
+        var maxHintEl = document.getElementById("seatingsale-maxhint");
+        var submitEl = document.getElementById("seatingsale-submit");
+        var form = root.closest("form");
+
         var SVGNS = "http://www.w3.org/2000/svg";
 
-        // --- bounds ---
-        var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-        seats.forEach(function (s) {
-            if (s.x < minX) minX = s.x;
-            if (s.y < minY) minY = s.y;
-            if (s.x > maxX) maxX = s.x;
-            if (s.y > maxY) maxY = s.y;
-        });
-        var pad = 24;
-        svg.setAttribute("viewBox", (minX - pad) + " " + (minY - pad) + " " +
-            ((maxX - minX) + pad * 2) + " " + ((maxY - minY) + pad * 2));
+        // guid -> { seat, variation, node }
+        var selection = {};
+        var nodeByGuid = {};
+        var activeFilter = null;
 
-        // --- state ---
-        var selected = {};      // guid -> {seat, variation}
-        var circles = {};       // guid -> circle element
-        var activeFilter = null; // category name, or null = show all
-
-        var list = document.getElementById("seatingsale-list");
-        var emptyHint = document.getElementById("seatingsale-empty");
-        var counter = document.getElementById("seatingsale-count");
-        var totalBox = document.getElementById("seatingsale-total");
-        var totalVal = document.getElementById("seatingsale-total-value");
-        var submitBtn = document.getElementById("seatingsale-submit");
-        var form = svg.closest("form");
-
-        function parsePrice(p) {
-            var n = parseFloat(String(p).replace(",", "."));
-            return isNaN(n) ? 0 : n;
+        function firstVariationId(seat) {
+            var p = seat.product;
+            if (p && p.variations && p.variations.length) {
+                return p.variations[0].id;
+            }
+            return null;
         }
 
-        function priceOf(entry) {
-            var prod = entry.seat.product;
-            if (prod.variations && prod.variations.length) {
-                for (var i = 0; i < prod.variations.length; i++) {
-                    if (String(prod.variations[i].id) === String(entry.variation)) {
-                        return parsePrice(prod.variations[i].price);
-                    }
+        function variationById(seat, vid) {
+            var p = seat.product;
+            if (!p || !p.variations) {
+                return null;
+            }
+            for (var i = 0; i < p.variations.length; i++) {
+                if (String(p.variations[i].id) === String(vid)) {
+                    return p.variations[i];
                 }
             }
-            return parsePrice(prod.price);
+            return null;
         }
 
-        // --- category legend / filter ---
+        // ---- geometry ----------------------------------------------------
+        var xs = seatData.map(function (s) { return s.x; });
+        var ys = seatData.map(function (s) { return s.y; });
+        var minX = Math.min.apply(null, xs);
+        var maxX = Math.max.apply(null, xs);
+        var minY = Math.min.apply(null, ys);
+        var maxY = Math.max.apply(null, ys);
+        var pad = 20;
+        svg.setAttribute(
+            "viewBox",
+            (minX - pad) + " " + (minY - pad) + " " +
+            (maxX - minX + 2 * pad) + " " + (maxY - minY + 2 * pad)
+        );
+
+        // ---- row labels --------------------------------------------------
+        var rowFirst = {};
+        seatData.forEach(function (s) {
+            if (!s.row) { return; }
+            if (!(s.row in rowFirst) || s.x < rowFirst[s.row].x) {
+                rowFirst[s.row] = s;
+            }
+        });
+        Object.keys(rowFirst).forEach(function (row) {
+            var s = rowFirst[row];
+            var t = document.createElementNS(SVGNS, "text");
+            t.setAttribute("x", s.x - 14);
+            t.setAttribute("y", s.y);
+            t.setAttribute("class", "seatingsale-rowlabel");
+            t.textContent = row;
+            svg.appendChild(t);
+        });
+
+        // ---- seats -------------------------------------------------------
+        seatData.forEach(function (s) {
+            var g = document.createElementNS(SVGNS, "g");
+            g.setAttribute("class", "seatingsale-seat");
+            g.setAttribute("data-guid", s.guid);
+            g.setAttribute("data-cat", s.cat || "");
+            if (!s.available) {
+                g.classList.add("seatingsale-seat-taken");
+            }
+
+            var circle = document.createElementNS(SVGNS, "circle");
+            circle.setAttribute("cx", s.x);
+            circle.setAttribute("cy", s.y);
+            circle.setAttribute("r", 9);
+            circle.setAttribute(
+                "fill", s.available ? (s.color || "#3b82f6") : "#cccccc"
+            );
+            g.appendChild(circle);
+
+            var label = document.createElementNS(SVGNS, "text");
+            label.setAttribute("x", s.x);
+            label.setAttribute("y", s.y);
+            label.setAttribute("class", "seatingsale-seatnum");
+            label.textContent = s.number || "";
+            g.appendChild(label);
+
+            var title = document.createElementNS(SVGNS, "title");
+            title.textContent = s.name || "";
+            g.appendChild(title);
+
+            nodeByGuid[s.guid] = { node: g, seat: s };
+
+            if (s.available) {
+                g.addEventListener("click", function () {
+                    toggleSeat(s, g);
+                });
+            }
+            svg.appendChild(g);
+        });
+
+        // ---- category legend / filter ------------------------------------
         if (showCategories) {
             var legend = document.getElementById("seatingsale-legend");
-            cats.forEach(function (c) {
-                var btn = document.createElement("button");
-                btn.type = "button";
-                btn.className = "seatingsale-legend-item";
-                btn.dataset.cat = c.name;
-                btn.innerHTML = '<span class="seatingsale-swatch" style="background:' +
-                    c.color + '"></span>' + c.name;
-                btn.addEventListener("click", function () {
+            catData.forEach(function (c) {
+                var item = document.createElement("button");
+                item.type = "button";
+                item.className = "seatingsale-legenditem";
+                item.setAttribute("data-cat", c.name);
+
+                var sw = document.createElement("span");
+                sw.className = "seatingsale-swatch";
+                sw.style.background = c.color || "#3b82f6";
+                item.appendChild(sw);
+
+                var lbl = document.createElement("span");
+                lbl.textContent = c.name;
+                item.appendChild(lbl);
+
+                item.addEventListener("click", function () {
                     activeFilter = (activeFilter === c.name) ? null : c.name;
                     applyFilter();
                 });
-                legend.appendChild(btn);
+                legend.appendChild(item);
             });
         }
 
         function applyFilter() {
+            Object.keys(nodeByGuid).forEach(function (guid) {
+                var entry = nodeByGuid[guid];
+                var dim = activeFilter && entry.seat.cat !== activeFilter;
+                entry.node.classList.toggle("seatingsale-dim", !!dim);
+            });
             if (showCategories) {
-                var items = document.querySelectorAll(".seatingsale-legend-item");
-                items.forEach(function (el) {
-                    el.classList.toggle("active", el.dataset.cat === activeFilter);
+                var items = document.querySelectorAll(".seatingsale-legenditem");
+                Array.prototype.forEach.call(items, function (el) {
+                    el.classList.toggle(
+                        "active", el.getAttribute("data-cat") === activeFilter
+                    );
                 });
             }
-            seats.forEach(function (s) {
-                var g = circles[s.guid].parentNode;
-                var dim = activeFilter && s.cat !== activeFilter;
-                g.classList.toggle("dimmed", !!dim);
-            });
         }
 
-        // --- row labels ---
-        var rows = {};
-        seats.forEach(function (s) {
-            if (!(s.row in rows) || s.x < rows[s.row].x) {
-                rows[s.row] = { x: s.x, y: s.y, label: s.row };
+        // ---- selection ---------------------------------------------------
+        function selectedCount() {
+            return Object.keys(selection).length;
+        }
+
+        function atLimit() {
+            return maxPerOrder > 0 && selectedCount() >= maxPerOrder;
+        }
+
+        function toggleSeat(seat, node) {
+            if (selection[seat.guid]) {
+                deselect(seat.guid);
+                return;
             }
-        });
-        Object.keys(rows).forEach(function (r) {
-            var info = rows[r];
-            var t = document.createElementNS(SVGNS, "text");
-            t.setAttribute("x", info.x - 16);
-            t.setAttribute("y", info.y + 4);
-            t.setAttribute("class", "seatingsale-rowlabel");
-            t.textContent = info.label;
-            svg.appendChild(t);
-        });
+            if (atLimit()) {
+                showMaxHint();
+                return;
+            }
+            selection[seat.guid] = {
+                seat: seat,
+                variation: firstVariationId(seat),
+                node: node
+            };
+            node.classList.add("seatingsale-selected");
+            render();
+        }
 
-        // --- selection rendering ---
-        function renderList() {
-            list.innerHTML = "";
-            var guids = Object.keys(selected);
-            counter.textContent = guids.length;
-            emptyHint.hidden = guids.length > 0;
-            submitBtn.disabled = guids.length === 0;
+        function deselect(guid) {
+            var entry = selection[guid];
+            if (!entry) { return; }
+            entry.node.classList.remove("seatingsale-selected");
+            delete selection[guid];
+            render();
+        }
 
+        var maxHintTimer = null;
+        function showMaxHint() {
+            if (!maxHintEl || !labelMax) { return; }
+            maxHintEl.textContent = labelMax;
+            maxHintEl.hidden = false;
+            if (maxHintTimer) { clearTimeout(maxHintTimer); }
+            maxHintTimer = setTimeout(function () {
+                maxHintEl.hidden = true;
+            }, 4000);
+        }
+
+        function priceOf(entry) {
+            var v = variationById(entry.seat, entry.variation);
+            if (v) {
+                return parseFloat(v.price) || 0;
+            }
+            var p = entry.seat.product;
+            return p ? (parseFloat(p.price) || 0) : 0;
+        }
+
+        function priceLabel(entry) {
+            var v = variationById(entry.seat, entry.variation);
+            if (v) {
+                return v.price;
+            }
+            var p = entry.seat.product;
+            return p ? p.price : "";
+        }
+
+        function render() {
+            var guids = Object.keys(selection);
+            countEl.textContent = guids.length;
+
+            listEl.innerHTML = "";
             var total = 0;
+
             guids.forEach(function (guid) {
-                var entry = selected[guid];
+                var entry = selection[guid];
                 var seat = entry.seat;
-                var prod = seat.product;
+                var product = seat.product;
+                total += priceOf(entry);
 
                 var card = document.createElement("div");
                 card.className = "seatingsale-card";
 
-                var top = document.createElement("div");
-                top.className = "seatingsale-card-top";
-                top.innerHTML = '<span class="seatingsale-dot" style="background:' +
-                    seat.color + '"></span>' +
-                    '<span class="seatingsale-card-name">' + seat.name + "</span>";
+                var dot = document.createElement("span");
+                dot.className = "seatingsale-carddot";
+                dot.style.background = seat.color || "#3b82f6";
+                card.appendChild(dot);
+
+                var info = document.createElement("div");
+                info.className = "seatingsale-cardinfo";
+
+                var name = document.createElement("div");
+                name.className = "seatingsale-cardname";
+                name.textContent = seat.name || "";
+                info.appendChild(name);
+
+                if (product && product.variations && product.variations.length > 1) {
+                    var sel = document.createElement("select");
+                    sel.className = "seatingsale-cardselect form-control input-sm";
+                    product.variations.forEach(function (v) {
+                        var opt = document.createElement("option");
+                        opt.value = v.id;
+                        opt.textContent = v.name + " · " + v.price;
+                        if (String(v.id) === String(entry.variation)) {
+                            opt.selected = true;
+                        }
+                        sel.appendChild(opt);
+                    });
+                    sel.addEventListener("change", function () {
+                        entry.variation = sel.value;
+                        render();
+                    });
+                    info.appendChild(sel);
+                } else {
+                    var price = document.createElement("div");
+                    price.className = "seatingsale-cardprice";
+                    if (product && product.variations && product.variations.length === 1) {
+                        price.textContent = product.variations[0].name +
+                            " · " + product.variations[0].price;
+                    } else {
+                        price.textContent = priceLabel(entry);
+                    }
+                    info.appendChild(price);
+                }
+                card.appendChild(info);
 
                 var rm = document.createElement("button");
                 rm.type = "button";
-                rm.className = "seatingsale-remove";
+                rm.className = "seatingsale-cardremove";
                 rm.setAttribute("aria-label", labelRemove);
-                rm.textContent = "×";
-                rm.addEventListener("click", function () { deselect(guid); });
-                top.appendChild(rm);
-                card.appendChild(top);
+                rm.title = labelRemove;
+                rm.innerHTML = "&times;";
+                rm.addEventListener("click", function () {
+                    deselect(guid);
+                });
+                card.appendChild(rm);
 
-                var bottom = document.createElement("div");
-                bottom.className = "seatingsale-card-bottom";
-                if (prod.variations && prod.variations.length) {
-                    var sel = document.createElement("select");
-                    sel.className = "seatingsale-varselect form-control input-sm";
-                    prod.variations.forEach(function (v) {
-                        var o = document.createElement("option");
-                        o.value = v.id;
-                        o.textContent = v.name + " · " + v.price;
-                        if (String(entry.variation) === String(v.id)) o.selected = true;
-                        sel.appendChild(o);
-                    });
-                    entry.variation = sel.value;
-                    sel.addEventListener("change", function () {
-                        entry.variation = sel.value;
-                        renderList();
-                    });
-                    bottom.appendChild(sel);
-                } else {
-                    var price = document.createElement("span");
-                    price.className = "seatingsale-card-price";
-                    price.textContent = prod.price;
-                    bottom.appendChild(price);
-                }
-                card.appendChild(bottom);
-                list.appendChild(card);
-
-                total += priceOf(entry);
+                listEl.appendChild(card);
             });
 
+            emptyEl.hidden = guids.length > 0;
             if (guids.length > 0) {
-                totalBox.hidden = false;
-                totalVal.textContent = total.toFixed(2).replace(".", ",");
+                totalEl.hidden = false;
+                totalValueEl.textContent = total.toFixed(2);
             } else {
-                totalBox.hidden = true;
+                totalEl.hidden = true;
+            }
+            submitEl.disabled = guids.length === 0;
+
+            if (maxHintEl && !atLimit()) {
+                maxHintEl.hidden = true;
             }
         }
 
-        function deselect(guid) {
-            if (!selected[guid]) return;
-            circles[guid].classList.remove("selected");
-            delete selected[guid];
-            renderList();
-        }
-
-        function toggleSeat(seat) {
-            if (!seat.available) return;
-            if (selected[seat.guid]) {
-                deselect(seat.guid);
-                return;
-            }
-            var firstVar = (seat.product.variations && seat.product.variations.length)
-                ? String(seat.product.variations[0].id) : null;
-            selected[seat.guid] = { seat: seat, variation: firstVar };
-            circles[seat.guid].classList.add("selected");
-            renderList();
-        }
-
-        // --- draw seats with numbers ---
-        seats.forEach(function (s) {
-            var g = document.createElementNS(SVGNS, "g");
-            g.setAttribute("class", "seatingsale-seatg");
-
-            var c = document.createElementNS(SVGNS, "circle");
-            c.setAttribute("cx", s.x);
-            c.setAttribute("cy", s.y);
-            c.setAttribute("r", 11);
-            c.setAttribute("fill", s.available ? s.color : "#cccccc");
-            c.setAttribute("class", "seatingsale-seat" + (s.available ? "" : " unavailable"));
-            var title = document.createElementNS(SVGNS, "title");
-            title.textContent = s.name + (s.available ? "" : " ✗");
-            c.appendChild(title);
-
-            var num = document.createElementNS(SVGNS, "text");
-            num.setAttribute("x", s.x);
-            num.setAttribute("y", s.y + 3);
-            num.setAttribute("class", "seatingsale-seatnum");
-            num.textContent = s.number;
-
-            circles[s.guid] = c;
-            if (s.available) {
-                g.style.cursor = "pointer";
-                g.addEventListener("click", function () { toggleSeat(s); });
-            }
-            g.appendChild(c);
-            g.appendChild(num);
-            svg.appendChild(g);
-        });
-
-        // --- submit: one hidden input per selected seat ---
-        function clearHiddenInputs() {
-            form.querySelectorAll("input.seatingsale-cart-field").forEach(function (el) {
-                el.remove();
-            });
-        }
-
-        submitBtn.addEventListener("click", function (ev) {
-            var guids = Object.keys(selected);
+        // ---- submit ------------------------------------------------------
+        // Inject one hidden field per selected seat on button click, before
+        // pretix' data-asynctask handler serialises the form.
+        submitEl.addEventListener("click", function (ev) {
+            var guids = Object.keys(selection);
             if (guids.length === 0) {
                 ev.preventDefault();
                 return;
             }
-            clearHiddenInputs();
+            var old = form.querySelectorAll(".seatingsale-cartfield");
+            Array.prototype.forEach.call(old, function (el) {
+                el.parentNode.removeChild(el);
+            });
             guids.forEach(function (guid) {
-                var entry = selected[guid];
-                var prod = entry.seat.product;
-                var name = "seat_" + prod.item;
-                if (entry.variation) name += "_" + entry.variation;
+                var entry = selection[guid];
+                var name = "seat_" + entry.seat.product.item;
+                if (entry.variation) {
+                    name += "_" + entry.variation;
+                }
                 var inp = document.createElement("input");
                 inp.type = "hidden";
-                inp.className = "seatingsale-cart-field";
+                inp.className = "seatingsale-cartfield";
                 inp.name = name;
                 inp.value = guid;
                 form.appendChild(inp);
             });
-            // let pretix's data-asynctask handler submit the form
+            // let pretix' data-asynctask handler submit the form
         });
 
-        renderList();
+        render();
     });
 })();

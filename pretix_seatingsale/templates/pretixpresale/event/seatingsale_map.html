@@ -8,7 +8,10 @@
 {% else %}
 <div class="seatingsale"
      data-show-categories="{% if show_categories %}1{% else %}0{% endif %}"
-     data-label-remove="{% trans "Remove seat" %}">
+     data-label-remove="{% trans "Remove seat" %}"
+     data-max-per-order="{{ max_per_order }}"
+     data-label-max="{% trans "You cannot select more seats than the maximum number of tickets per order." %}">
+
     {% if show_categories %}
         <div class="seatingsale-legend" id="seatingsale-legend"></div>
     {% endif %}
@@ -29,6 +32,8 @@
             </p>
 
             <div id="seatingsale-list" class="seatingsale-list"></div>
+
+            <p id="seatingsale-maxhint" class="seatingsale-maxhint" hidden></p>
 
             <div class="seatingsale-total" id="seatingsale-total" hidden>
                 <span>{% trans "Total" %}</span>

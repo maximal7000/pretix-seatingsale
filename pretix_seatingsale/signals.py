@@ -109,12 +109,19 @@ def render_seating_plan_receiver(sender, request, **kwargs):
         if n in used_categories
     ]
 
+    # Maximum number of items a customer may put in the cart in one order.
+    try:
+        max_per_order = int(event.settings.max_items_per_order)
+    except (TypeError, ValueError):
+        max_per_order = 10
+
     ctx = {
         "seats_json": json.dumps(seats),
         "categories_json": json.dumps(categories),
         "has_seats": len(seats) > 0,
         # Hide the category legend/filter when there is only one category.
         "show_categories": len(categories) > 1,
+        "max_per_order": max_per_order,
     }
     template = get_template("pretixpresale/event/seatingsale_map.html")
     return template.render(ctx, request=request)

@@ -214,7 +214,7 @@ class SeatingAssign(EventPermissionRequiredMixin, TemplateView):
             plan = target.seating_plan
             cat_names = []
             if plan:
-                _, cat_names = _plan_stats(plan)
+                _seats, cat_names = _plan_stats(plan)
             mappings = {
                 m.layout_category: m.product_id
                 for m in SeatCategoryMapping.objects.filter(
@@ -272,7 +272,7 @@ class SeatingAssign(EventPermissionRequiredMixin, TemplateView):
 
                 mapping = {}
                 if plan:
-                    _, cats = _plan_stats(plan)
+                    _seats, cats = _plan_stats(plan)
                     for cat in cats:
                         pid = request.POST.get("map_%s" % cat)
                         if not pid:

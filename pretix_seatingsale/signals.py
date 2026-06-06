@@ -32,6 +32,23 @@ def _guid_to_category(plan):
     return out
 
 
+def _guid_to_rowpos(plan):
+    """Map every seat_guid to its row's number-label position.
+
+    Possible values from seats.pretix.eu: "left", "right", "both", "none".
+    """
+    out = {}
+    if not plan:
+        return out
+    data = plan.layout_data
+    for zone in data.get("zones", []):
+        for row in zone.get("rows", []):
+            pos = row.get("row_number_position", "both")
+            for seat in row.get("seats", []):
+                out[seat["seat_guid"]] = pos
+    return out
+
+
 def _areas(plan):
     """Collect non-seat decorations (stage, entrance, pillars, labels…).
 
@@ -114,6 +131,7 @@ def render_seating_plan_receiver(sender, request, **kwargs):
         colors[c["name"]] = c.get("color", "#2980b9")
 
     guid_cat = _guid_to_category(plan)
+    guid_rowpos = _guid_to_rowpos(plan)
 
     # category -> product (+ its variations) via SeatCategoryMapping
     maps = SeatCategoryMapping.objects.filter(
@@ -155,6 +173,7 @@ def render_seating_plan_receiver(sender, request, **kwargs):
             "name": s.name,
             "number": s.seat_number or "",
             "row": s.row_name or "",
+            "rowpos": guid_rowpos.get(s.seat_guid, "both"),
             "available": available,
             "product": prod,
         })

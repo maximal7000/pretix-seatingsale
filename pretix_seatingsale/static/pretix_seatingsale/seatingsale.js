@@ -155,27 +155,57 @@
                 t.setAttribute("class", "seatingsale-arealabel");
                 t.setAttribute("fill", a.text.color || "#333333");
                 t.setAttribute("font-size", a.text.size || 16);
+                // Rotate the label with its shape so it sits on the rotated
+                // decoration (e.g. a side door) instead of floating beside it.
+                if (a.rotation) {
+                    t.setAttribute(
+                        "transform",
+                        "rotate(" + a.rotation + " " + a.x + " " + a.y + ")"
+                    );
+                }
                 t.textContent = a.text.text;
                 svg.appendChild(t);
             }
         });
 
-        // ---- row labels --------------------------------------------------
+        // ---- row labels (left and/or right, per plan setting) ------------
         var rowFirst = {};
+        var rowLast = {};
         seatData.forEach(function (s) {
             if (!s.row) { return; }
             if (!(s.row in rowFirst) || s.x < rowFirst[s.row].x) {
                 rowFirst[s.row] = s;
             }
+            if (!(s.row in rowLast) || s.x > rowLast[s.row].x) {
+                rowLast[s.row] = s;
+            }
         });
+
+        function addRowLabel(s, x, cls) {
+            var t = document.createElementNS(SVGNS, "text");
+            t.setAttribute("x", x);
+            t.setAttribute("y", s.y);
+            t.setAttribute("class", cls);
+            t.textContent = s.row;
+            svg.appendChild(t);
+        }
+
         Object.keys(rowFirst).forEach(function (row) {
             var s = rowFirst[row];
-            var t = document.createElementNS(SVGNS, "text");
-            t.setAttribute("x", s.x - 14);
-            t.setAttribute("y", s.y);
-            t.setAttribute("class", "seatingsale-rowlabel");
-            t.textContent = row;
-            svg.appendChild(t);
+            var pos = s.rowpos || "both";
+            if (pos === "left" || pos === "both") {
+                addRowLabel(s, s.x - 16, "seatingsale-rowlabel");
+            }
+        });
+        Object.keys(rowLast).forEach(function (row) {
+            var s = rowLast[row];
+            var pos = s.rowpos || "both";
+            if (pos === "right" || pos === "both") {
+                addRowLabel(
+                    s, s.x + 16,
+                    "seatingsale-rowlabel seatingsale-rowlabel-right"
+                );
+            }
         });
 
         // ---- seats -------------------------------------------------------
@@ -191,7 +221,7 @@
             var circle = document.createElementNS(SVGNS, "circle");
             circle.setAttribute("cx", s.x);
             circle.setAttribute("cy", s.y);
-            circle.setAttribute("r", 9);
+            circle.setAttribute("r", 10);
             circle.setAttribute(
                 "fill", s.available ? (s.color || "#3b82f6") : "#cccccc"
             );

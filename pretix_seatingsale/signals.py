@@ -112,6 +112,14 @@ def _plan_for(event, subevent):
     return event.seating_plan
 
 
+def _available_seat_ids(event, subevent, sales_channel):
+    """Return available seat IDs using pretix's batched availability query."""
+    seat_owner = subevent or event
+    return set(
+        seat_owner.free_seats(sales_channel=sales_channel).values_list("pk", flat=True)
+    )
+
+
 @receiver(render_seating_plan, dispatch_uid="seatingsale_render")
 def render_seating_plan_receiver(sender, request, **kwargs):
     event = sender
@@ -156,14 +164,13 @@ def render_seating_plan_receiver(sender, request, **kwargs):
     # seat objects, sorted by rank for stable rendering
     seats = []
     used_categories = set()
-    qs = event.seats.filter(subevent=subevent).select_related("product").order_by(
-        "sorting_rank", "seat_guid"
-    )
+    qs = event.seats.filter(subevent=subevent).order_by("sorting_rank", "seat_guid")
+    available_seat_ids = _available_seat_ids(event, subevent, channel)
     for s in qs:
         cat = guid_cat.get(s.seat_guid, "")
         used_categories.add(cat)
         prod = cat_product.get(cat)
-        available = bool(prod) and not s.blocked and s.is_available(sales_channel=channel)
+        available = bool(prod) and s.pk in available_seat_ids
         seats.append({
             "guid": s.seat_guid,
             "x": s.x or 0,
